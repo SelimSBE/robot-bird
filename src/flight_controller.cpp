@@ -57,15 +57,17 @@ private:
                         dx, dy, dz);
 
     // Simple proportional control
-    double k_p = 1.0;  // Increased gain for more responsive movement
+    double k_px = 1.0;  // Increased gain for more responsive movement
+    double k_py = 1.0;  // Increased gain for more responsive movement
+    double k_pz = 1.0;  // Increased gain for more responsive movement
     
     geometry_msgs::msg::Twist cmd_vel;
-    cmd_vel.linear.x = k_p * dx;
-    cmd_vel.linear.y = k_p * dy;
-    cmd_vel.linear.z = k_p * dz;
+    cmd_vel.linear.x = k_px * dx;
+    cmd_vel.linear.y = k_py * dy;
+    cmd_vel.linear.z = k_pz * dz;
 
     // Limit maximum velocity
-    double max_vel = 5.0;  // Increased max velocity
+    double max_vel = 10.0;  // Increased max velocity
     double vel_magnitude = sqrt(pow(cmd_vel.linear.x, 2) + 
                               pow(cmd_vel.linear.y, 2) + 
                               pow(cmd_vel.linear.z, 2));

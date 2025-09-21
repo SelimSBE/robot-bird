@@ -88,8 +88,22 @@ def generate_launch_description():
             '-file', urdf_path,
             '-x', '0.0',
             '-y', '0.0',
-            '-z', '1.0'
+            '-z', '0.0'
         ]
+    )
+
+    # odom_to_tf node
+    odom_to_tf = Node(
+        package='robotic_bird',
+        executable='nodes/odom_to_tf.py',  # path relative to package
+        name='odom_to_tf',
+        output='screen'
+    )
+    target_publisher = Node(
+        package='robotic_bird',
+        executable='nodes/target_publisher.py',
+        name='target_publisher',
+        output='screen'
     )
 
     # Add RViz with modified settings
@@ -112,6 +126,8 @@ def generate_launch_description():
         env_vars + [
             gazebo,
             robot_state_publisher,
+            target_publisher,
+            odom_to_tf,
             spawn_robot,
             Node(
                 package="robotic_bird",
