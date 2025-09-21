@@ -3,52 +3,107 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <nav_msgs/msg/odometry.hpp>
-#include <cmath>
 
 class FlightController : public rclcpp::Node {
 public:
-  FlightController(): Node("flight_controller") {
-    odom_sub_ = create_subscription<nav_msgs::msg::Odometry>(
-      "odom", 10, std::bind(&FlightController::odom_cb, this, std::placeholders::_1));
+  FlightController() : Node("flight_controller") {
+    // Publishers
+    cmd_vel_pub_ = create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
+    
+    // Subscribers
     target_sub_ = create_subscription<geometry_msgs::msg::PoseStamped>(
-      "target_pose", 10, std::bind(&FlightController::target_cb, this, std::placeholders::_1));
-    cmd_pub_ = create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
-    timer_ = create_wall_timer(std::chrono::milliseconds(50), std::bind(&FlightController::control_loop, this));
-    Kp_lin_ = 1.0; Kp_yaw_ = 1.0;
+      "target_pose", 10,
+      std::bind(&FlightController::target_callback, this, std::placeholders::_1));
+      
+    odom_sub_ = create_subscription<nav_msgs::msg::Odometry>(
+      "/odom", 10,
+      std::bind(&FlightController::odom_callback, this, std::placeholders::_1));
+
+    // Control loop timer (20Hz)
+    timer_ = create_wall_timer(
+      std::chrono::milliseconds(50),
+      std::bind(&FlightController::control_loop, this));
+
+    RCLCPP_INFO(get_logger(), "Flight controller initialized");
   }
 
 private:
-  void odom_cb(const nav_msgs::msg::Odometry::SharedPtr msg){ odom_ = *msg; have_odom_ = true; }
-  void target_cb(const geometry_msgs::msg::PoseStamped::SharedPtr msg){ target_ = *msg; have_target_ = true; }
-
-  void control_loop() {
-    if(!have_odom_ || !have_target_) return;
-    double dx = target_.pose.position.x - odom_.pose.pose.position.x;
-    double dy = target_.pose.position.y - odom_.pose.pose.position.y;
-    double dz = target_.pose.position.z - odom_.pose.pose.position.z;
-    double dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-    geometry_msgs::msg::Twist cmd;
-    // simple proportional velocity command toward target
-    cmd.linear.x = Kp_lin_ * dx;
-    cmd.linear.y = Kp_lin_ * dy;
-    cmd.linear.z = Kp_lin_ * dz;
-    // yaw control (very simple)
-    double yaw_err = 0.0; // compute from quaternion if needed
-    cmd.angular.z = Kp_yaw_ * yaw_err;
-    cmd_pub_->publish(cmd);
+  void target_callback(const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
+    target_pose_ = *msg;
+    have_target_ = true;
   }
 
-  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+  void odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg) {
+    current_pose_ = msg->pose.pose;
+    have_odom_ = true;
+  }
+
+  void control_loop() {
+    if (!have_target_ || !have_odom_) {
+      RCLCPP_DEBUG(get_logger(), "Waiting for target or odom data...");
+      return;
+    }
+
+    // Calculate error
+    double dx = target_pose_.pose.position.x - current_pose_.position.x;
+    double dy = target_pose_.pose.position.y - current_pose_.position.y;
+    double dz = target_pose_.pose.position.z - current_pose_.position.z;
+
+    // Log position error
+    RCLCPP_INFO_THROTTLE(get_logger(), 
+                        *get_clock(),
+                        1000, // Log every second
+                        "Position error: dx=%.2f, dy=%.2f, dz=%.2f",
+                        dx, dy, dz);
+
+    // Simple proportional control
+    double k_p = 1.0;  // Increased gain for more responsive movement
+    
+    geometry_msgs::msg::Twist cmd_vel;
+    cmd_vel.linear.x = k_p * dx;
+    cmd_vel.linear.y = k_p * dy;
+    cmd_vel.linear.z = k_p * dz;
+
+    // Limit maximum velocity
+    double max_vel = 5.0;  // Increased max velocity
+    double vel_magnitude = sqrt(pow(cmd_vel.linear.x, 2) + 
+                              pow(cmd_vel.linear.y, 2) + 
+                              pow(cmd_vel.linear.z, 2));
+    
+    if (vel_magnitude > max_vel) {
+      cmd_vel.linear.x *= max_vel / vel_magnitude;
+      cmd_vel.linear.y *= max_vel / vel_magnitude;
+      cmd_vel.linear.z *= max_vel / vel_magnitude;
+    }
+
+    // Log commanded velocity
+    RCLCPP_INFO_THROTTLE(get_logger(),
+                        *get_clock(),
+                        1000,
+                        "Cmd vel: vx=%.2f, vy=%.2f, vz=%.2f",
+                        cmd_vel.linear.x, cmd_vel.linear.y, cmd_vel.linear.z);
+
+    cmd_vel_pub_->publish(cmd_vel);
+  }
+
+  // Publishers
+  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
+  
+  // Subscribers
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr target_sub_;
-  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_pub_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+  
+  // Timer
   rclcpp::TimerBase::SharedPtr timer_;
-  nav_msgs::msg::Odometry odom_;
-  geometry_msgs::msg::PoseStamped target_;
-  bool have_odom_{false}, have_target_{false};
-  double Kp_lin_, Kp_yaw_;
+  
+  // State
+  geometry_msgs::msg::PoseStamped target_pose_;
+  geometry_msgs::msg::Pose current_pose_;
+  bool have_target_ = false;
+  bool have_odom_ = false;
 };
 
-int main(int argc, char **argv){
+int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
   rclcpp::spin(std::make_shared<FlightController>());
   rclcpp::shutdown();

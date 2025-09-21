@@ -36,6 +36,14 @@ install(TARGETS
   flap_plugin
   DESTINATION lib/${PROJECT_NAME})
 
+# Install plugins
+install(
+  TARGETS flap_plugin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
 # Install launch, config, urdf etc.
 install(
   DIRECTORY launch urdf rviz config worlds

@@ -9,6 +9,13 @@ def generate_launch_description():
     # Get package share directory
     pkg_share = get_package_share_directory('robotic_bird')
     
+    # Set Gazebo plugin path
+    plugin_path = os.path.join(pkg_share, 'lib')
+    if 'GAZEBO_PLUGIN_PATH' in os.environ:
+        os.environ['GAZEBO_PLUGIN_PATH'] += f":{plugin_path}"
+    else:
+        os.environ['GAZEBO_PLUGIN_PATH'] = plugin_path
+
     # Get paths
     world_path = os.path.join(pkg_share, 'worlds', 'robot_bird.world')
     urdf_path = os.path.join(pkg_share, 'urdf', 'robotic_bird.urdf.xacro')
@@ -26,6 +33,8 @@ def generate_launch_description():
         # Set OpenGL to use software rendering
         SetEnvironmentVariable('LIBGL_ALWAYS_SOFTWARE', '1'),
         SetEnvironmentVariable('OGRE_RTT_MODE', 'Copy'),
+        SetEnvironmentVariable('GAZEBO_PLUGIN_PATH', 
+                             os.path.join(get_package_share_directory('robotic_bird'), 'lib')),
     ]
 
     # Include Gazebo server
