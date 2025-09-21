@@ -7,6 +7,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(gazebo_ros REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
 include_directories(include)
 
@@ -16,7 +17,10 @@ ament_target_dependencies(flight_controller rclcpp geometry_msgs nav_msgs)
 
 # navigator node
 add_executable(navigator src/navigator.cpp)
-ament_target_dependencies(navigator rclcpp geometry_msgs)
+ament_target_dependencies(navigator 
+  rclcpp 
+  geometry_msgs 
+  visualization_msgs)
 
 # optional plugin
 add_library(flap_plugin SHARED plugins/flap_plugin.cpp)
