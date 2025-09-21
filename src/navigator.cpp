@@ -12,11 +12,11 @@ private:
     geometry_msgs::msg::PoseStamped msg;
     msg.header.stamp = now();
     msg.header.frame_id = "map";
-    msg.pose.position.x = 5.0;
-    msg.pose.position.y = 0.0;
-    msg.pose.position.z = 2.0;
+    msg.pose.position.x = 100.0;
+    msg.pose.position.y = 100.0;
+    msg.pose.position.z = 100.0;
     msg.pose.orientation.w = 1.0;
-    RCLCPP_INFO(get_logger(), "Publishing target (5,0,2)");
+    RCLCPP_INFO(get_logger(), "Publishing target (100,100,100)");
     pub_->publish(msg);
   }
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_;

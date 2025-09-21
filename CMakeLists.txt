@@ -20,7 +20,15 @@ ament_target_dependencies(navigator rclcpp geometry_msgs)
 
 # optional plugin
 add_library(flap_plugin SHARED plugins/flap_plugin.cpp)
-ament_target_dependencies(flap_plugin rclcpp gazebo_ros)
+ament_target_dependencies(flap_plugin
+  rclcpp
+  geometry_msgs
+  nav_msgs
+  gazebo_ros
+)
+target_link_libraries(flap_plugin
+  ${GAZEBO_LIBRARIES}
+)
 
 install(TARGETS
   flight_controller
@@ -28,7 +36,11 @@ install(TARGETS
   flap_plugin
   DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY launch urdf
-  DESTINATION share/${PROJECT_NAME}/)
+# Install launch, config, urdf etc.
+install(
+  DIRECTORY launch urdf rviz config worlds
+  DESTINATION share/${PROJECT_NAME}
+)
 
 ament_package()
+

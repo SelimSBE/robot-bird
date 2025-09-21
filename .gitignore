@@ -1,0 +1,19 @@
+# Build directories
+build/
+log/
+
+# Colcon-related
+.colcon_cd_source/
+.colcon/
+
+# ROS-specific
+.ros/
+
+# IDE-specific (VS Code)
+.vscode/
+*.code-workspace
+
+# System-specific
+.DS_Store
+*.swp
+*~
