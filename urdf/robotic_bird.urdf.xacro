@@ -14,22 +14,31 @@
       <geometry>
         <sphere radius="0.2"/>
       </geometry>
+      <surface>
+        <contact>
+          <collide_bitmask>0</collide_bitmask>
+        </contact>
+      </surface>
     </collision>
     <inertial>
       <mass value="5.0"/>
       <inertia 
-        ixx="0.05" ixy="0" ixz="0" 
-        iyy="0.05" iyz="0" 
-        izz="0.05"/>
+        ixx="0.08" ixy="0" ixz="0" 
+        iyy="0.08" iyz="0" 
+        izz="0.08"/>
     </inertial>
   </link>
 
   <!-- Gazebo-specific properties -->
   <gazebo reference="base_link">
-    <material>Gazebo/Blue</material>
     <gravity>true</gravity>
+    <self_collide>false</self_collide>
+    <kinematic>false</kinematic>
     <mu1>0.2</mu1>
     <mu2>0.2</mu2>
+    <kp>100000</kp> <!-- contact stiffness -->
+    <kd>1.0</kd>    <!-- contact damping -->
+    <allow_free_motion>true</allow_free_motion>
   </gazebo>
 
   <!-- Flap plugin -->

@@ -13,14 +13,7 @@ include_directories(include)
 
 # flight controller node
 add_executable(flight_controller src/flight_controller.cpp)
-ament_target_dependencies(flight_controller rclcpp geometry_msgs nav_msgs)
-
-# navigator node
-add_executable(navigator src/navigator.cpp)
-ament_target_dependencies(navigator 
-  rclcpp 
-  geometry_msgs 
-  visualization_msgs)
+ament_target_dependencies(flight_controller rclcpp geometry_msgs nav_msgs visualization_msgs)
 
 # optional plugin
 add_library(flap_plugin SHARED plugins/flap_plugin.cpp)
@@ -36,7 +29,6 @@ target_link_libraries(flap_plugin
 
 install(TARGETS
   flight_controller
-  navigator
   flap_plugin
   DESTINATION lib/${PROJECT_NAME})
 

@@ -1,6 +1,7 @@
 # Build directories
 build/
 log/
+install/
 
 # Colcon-related
 .colcon_cd_source/

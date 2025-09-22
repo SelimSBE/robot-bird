@@ -8,9 +8,11 @@ class TargetPublisher(Node):
     def __init__(self):
         super().__init__('target_publisher')
         self.pub = self.create_publisher(Marker, '/target_marker', 10)
-        self.timer = self.create_timer(0.1, self.publish_marker)  # 10 Hz
 
     def publish_marker(self):
+        if self.get_clock().now().nanoseconds == 0:
+            return  # wait for sim time
+
         marker = Marker()
         marker.header.frame_id = 'odom'
         marker.header.stamp = self.get_clock().now().to_msg()
@@ -18,9 +20,9 @@ class TargetPublisher(Node):
         marker.id = 0
         marker.type = Marker.SPHERE
         marker.action = Marker.ADD
-        marker.pose.position.x = 2.0  # your target position
-        marker.pose.position.y = 3.0
-        marker.pose.position.z = 1.0
+        marker.pose.position.x = 30.0  # your target position
+        marker.pose.position.y = 30.0
+        marker.pose.position.z = 30.0
         marker.pose.orientation.w = 1.0
         marker.scale.x = 0.3  # sphere size
         marker.scale.y = 0.3
@@ -34,8 +36,13 @@ class TargetPublisher(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = TargetPublisher()
-    rclpy.spin(node)
-    rclpy.shutdown()
+    try:
+        while rclpy.ok():
+            node.publish_marker()  # publish whenever loop runs
+            rclpy.spin_once(node, timeout_sec=0.0)
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == "__main__":
     main()

@@ -88,7 +88,7 @@ def generate_launch_description():
             '-file', urdf_path,
             '-x', '0.0',
             '-y', '0.0',
-            '-z', '0.0'
+            '-z', '3.0'
         ]
     )
 
@@ -104,6 +104,14 @@ def generate_launch_description():
         executable='nodes/target_publisher.py',
         name='target_publisher',
         output='screen'
+    )
+
+    flight_controller=Node(
+        package="robotic_bird",
+        executable="flight_controller",
+        name="flight_controller",
+        output="screen",
+        parameters=[{'use_sim_time': True}]
     )
 
     # Add RViz with modified settings
@@ -129,16 +137,7 @@ def generate_launch_description():
             target_publisher,
             odom_to_tf,
             spawn_robot,
-            Node(
-                package="robotic_bird",
-                executable="flight_controller",
-                name="flight_controller",
-                output="screen"),
-            Node(
-                package="robotic_bird",
-                executable="navigator",
-                name="navigator",
-                output="screen"),
+            flight_controller,
             rviz
         ]
     )
