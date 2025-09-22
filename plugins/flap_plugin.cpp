@@ -20,7 +20,7 @@ public:
     model_ = _model;
 
     // Get link
-    std::string link_name = "base_link";
+    std::string link_name = "body_link";
     if (_sdf->HasElement("link_name"))
         link_name = _sdf->Get<std::string>("link_name");
 
@@ -95,7 +95,7 @@ private:
     nav_msgs::msg::Odometry odom_msg;
     odom_msg.header.stamp = current_time;
     odom_msg.header.frame_id = "odom";
-    odom_msg.child_frame_id = "base_link";
+    odom_msg.child_frame_id = "body_link";
     odom_msg.pose.pose.position.x = pose.Pos().X();
     odom_msg.pose.pose.position.y = pose.Pos().Y();
     odom_msg.pose.pose.position.z = pose.Pos().Z();
@@ -113,7 +113,7 @@ private:
     odom_msg.twist.twist.angular.x = angular_vel.X();
     odom_msg.twist.twist.angular.y = angular_vel.Y();
     odom_msg.twist.twist.angular.z = angular_vel.Z();
-    
+
     odom_pub_->publish(odom_msg);
 
     last_update_time_ = current_time;
